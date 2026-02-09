@@ -116,12 +116,19 @@ class _WebViewScreenState extends State<WebViewScreen> {
     _webViewController = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(const Color(0xFF0F172A))
+      // Enable caching for better performance
+      ..enableZoom(false)
+      // Set user agent for better compatibility
+      ..setUserAgent('Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36')
       ..setNavigationDelegate(
         NavigationDelegate(
           onProgress: (int progress) {
-            setState(() {
-              _loadingProgress = progress / 100;
-            });
+            // Debounce progress updates to reduce rebuilds
+            if (progress % 10 == 0 || progress == 100) {
+              setState(() {
+                _loadingProgress = progress / 100;
+              });
+            }
           },
           onPageStarted: (String url) {
             setState(() {
@@ -132,9 +139,35 @@ class _WebViewScreenState extends State<WebViewScreen> {
             setState(() {
               _isLoading = false;
             });
-            // Inject CSS to hide any scrollbars if needed
+            // Inject performance optimizations
             _webViewController.runJavaScript('''
+              // Disable overscroll behavior
               document.body.style.overscrollBehavior = 'none';
+              
+              // Enable hardware acceleration for animations
+              document.body.style.transform = 'translateZ(0)';
+              document.body.style.webkitTransform = 'translateZ(0)';
+              
+              // Optimize scrolling performance
+              document.body.style.webkitOverflowScrolling = 'touch';
+              
+              // Prevent text selection lag
+              document.body.style.webkitUserSelect = 'none';
+              document.body.style.userSelect = 'none';
+              
+              // Add viewport meta if missing
+              if (!document.querySelector('meta[name="viewport"]')) {
+                var meta = document.createElement('meta');
+                meta.name = 'viewport';
+                meta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+                document.head.appendChild(meta);
+              }
+              
+              // Optimize images for faster loading
+              document.querySelectorAll('img').forEach(img => {
+                img.loading = 'lazy';
+                img.decoding = 'async';
+              });
             ''');
           },
           onWebResourceError: (WebResourceError error) {
