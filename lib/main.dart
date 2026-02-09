@@ -50,7 +50,7 @@ class WebViewScreen extends StatefulWidget {
 }
 
 class _WebViewScreenState extends State<WebViewScreen> {
-  static const String targetUrl = 'https://mayank.wiki/mindvora/login';
+  static const String targetUrl = 'https://mayank.wiki/mindvora/dashboard';
   
   late WebViewController _webViewController;
   bool _isLoading = true;
